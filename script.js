@@ -18,11 +18,15 @@ const gtfsUploadInput = document.getElementById('gtfs-upload');
 const selectedRoutesListDiv = document.getElementById('selected-routes-list');
 const exportButton = document.getElementById('export-button');
 const mapDiv = document.getElementById('map');
+const loadingIndicator = document.getElementById('loading-indicator');
 
 // --- 1. File Handling and Parsing ---
 gtfsUploadInput.addEventListener('change', handleFileUpload);
 
 async function handleFileUpload(event) {
+    loadingIndicator.style.display = 'block'; // Show loading indicator
+    await new Promise(resolve => setTimeout(resolve, 0)); // Allow DOM to update
+
     const file = event.target.files[0];
     if (!file) {
         console.error("No file selected.");
@@ -86,6 +90,7 @@ async function handleFileUpload(event) {
         if (map) map.remove(); map = null;
         selectedRoutesListDiv.innerHTML = '<p>Error loading data.</p>';
         exportButton.disabled = true;
+        loadingIndicator.style.display = 'none'; // Hide indicator on error too
     }
 }
 
@@ -114,48 +119,56 @@ function displayGtfsData() {
 
     const bounds = L.latLngBounds();
 
-    // Process shapes and draw routes
-    const shapesByShapeId = {};
+    // Process shapes efficiently
+    const processedShapes = {}; // Key: shape_id, Value: sorted array of [lat, lon]
     if (gtfsData.shapes && gtfsData.shapes.length > 0) {
+        console.time("ShapeProcessing");
+        const tempShapes = {}; // Store points temporarily before sorting
         gtfsData.shapes.forEach(shapePt => {
-            if (!shapesByShapeId[shapePt.shape_id]) {
-                shapesByShapeId[shapePt.shape_id] = [];
-            }
-            // Ensure lat/lon are numbers
+            if (!shapePt.shape_id) return; // Skip if no shape_id
+
             const lat = parseFloat(shapePt.shape_pt_lat);
             const lon = parseFloat(shapePt.shape_pt_lon);
-            if (!isNaN(lat) && !isNaN(lon)) {
-                 shapesByShapeId[shapePt.shape_id].push([lat, lon]);
+            const seq = parseInt(shapePt.shape_pt_sequence, 10);
+
+            if (isNaN(lat) || isNaN(lon) || isNaN(seq)) {
+                // console.warn("Invalid shape point data:", shapePt);
+                return; // Skip invalid point
             }
+
+            if (!tempShapes[shapePt.shape_id]) {
+                tempShapes[shapePt.shape_id] = [];
+            }
+            tempShapes[shapePt.shape_id].push({ lat, lon, seq });
         });
-        // Sort shape points by sequence
-        for (const shapeId in shapesByShapeId) {
-            shapesByShapeId[shapeId].sort((a, b) => {
-                const ptA = gtfsData.shapes.find(s => s.shape_id === shapeId && parseFloat(s.shape_pt_lat) === a[0] && parseFloat(s.shape_pt_lon) === a[1]);
-                const ptB = gtfsData.shapes.find(s => s.shape_id === shapeId && parseFloat(s.shape_pt_lat) === b[0] && parseFloat(s.shape_pt_lon) === b[1]);
-                return parseInt(ptA.shape_pt_sequence) - parseInt(ptB.shape_pt_sequence);
-            });
+
+        for (const shapeId in tempShapes) {
+            // Sort points by sequence
+            tempShapes[shapeId].sort((a, b) => a.seq - b.seq);
+            // Convert to Leaflet [lat, lon] format
+            processedShapes[shapeId] = tempShapes[shapeId].map(pt => [pt.lat, pt.lon]);
         }
+        console.timeEnd("ShapeProcessing");
+        console.log("Shapes processed (optimized):", Object.keys(processedShapes).length);
     }
-    console.log("Shapes processed:", Object.keys(shapesByShapeId).length);
 
 
-    // Create a map of route_id to its shape_ids (can be multiple if trips on same route use different shapes)
+    // Create a map of route_id to its shape_ids
     const routeToShapeIds = {};
     gtfsData.trips.forEach(trip => {
-        if (!routeToShapeIds[trip.route_id]) {
-            routeToShapeIds[trip.route_id] = new Set();
-        }
-        if (trip.shape_id && shapesByShapeId[trip.shape_id]) {
+        if (trip.route_id && trip.shape_id && processedShapes[trip.shape_id]) {
+            if (!routeToShapeIds[trip.route_id]) {
+                routeToShapeIds[trip.route_id] = new Set();
+            }
             routeToShapeIds[trip.route_id].add(trip.shape_id);
         }
     });
 
     gtfsData.routes.forEach(route => {
-        const routeShapeIds = routeToShapeIds[route.route_id];
-        if (routeShapeIds && routeShapeIds.size > 0) {
-            routeShapeIds.forEach(shapeId => {
-                const shapeCoords = shapesByShapeId[shapeId];
+        const currentRouteShapeIds = routeToShapeIds[route.route_id];
+        if (currentRouteShapeIds && currentRouteShapeIds.size > 0) {
+            currentRouteShapeIds.forEach(shapeId => {
+                const shapeCoords = processedShapes[shapeId]; // Use the processed shapes
                 if (shapeCoords && shapeCoords.length >= 2) {
                     try {
                         const polyline = L.polyline(shapeCoords, {
@@ -224,6 +237,9 @@ function displayGtfsData() {
 
     // Add click listeners to routes for selection
     addRouteClickListeners();
+
+    loadingIndicator.style.display = 'none'; // Hide loading indicator
+    console.log("Finished displaying GTFS data.");
 }
 
 // --- 3. Interactivity and Selection ---
