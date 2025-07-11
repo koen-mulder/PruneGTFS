@@ -25,6 +25,8 @@ const loadingProgressDiv = document.getElementById('loading-progress'); // Added
 function updateLoadingProgress(message) {
     if (loadingProgressDiv) {
         loadingProgressDiv.innerHTML += `<p>${message}</p>`;
+        // Scroll to the bottom of the progress div
+        loadingProgressDiv.scrollTop = loadingProgressDiv.scrollHeight;
     }
     console.log("Progress: " + message); // Also log to console
 }
