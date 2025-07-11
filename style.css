@@ -174,3 +174,9 @@ h1 {
 .leaflet-popup-content {
     font-size: 14px;
 }
+
+/* Added for wait cursor during loading */
+body.loading-in-progress,
+body.loading-in-progress * { /* Apply to all children as well */
+    cursor: wait !important; /* Use !important to override other cursor styles */
+}

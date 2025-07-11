@@ -41,6 +41,9 @@ function clearLoadingProgress() {
 gtfsUploadInput.addEventListener('change', handleFileUpload);
 
 async function handleFileUpload(event) {
+    document.body.classList.add('loading-in-progress');
+    gtfsUploadInput.disabled = true;
+    exportButton.disabled = true; // Explicitly disable export button during load
     loadingIndicator.style.display = 'block'; // Show loading indicator
     clearLoadingProgress(); // Clear previous messages
     updateLoadingProgress("File selected. Starting processing...");
@@ -51,6 +54,10 @@ async function handleFileUpload(event) {
         console.error("No file selected.");
         updateLoadingProgress("Error: No file selected.");
         loadingIndicator.style.display = 'none'; // Hide if no file
+        // Reset states in case of early exit
+        document.body.classList.remove('loading-in-progress');
+        gtfsUploadInput.disabled = false;
+        updateExportButtonStatus(); // Reset export button based on selection
         return;
     }
 
@@ -120,9 +127,13 @@ async function handleFileUpload(event) {
         gtfsData = { routes: [], trips: [], stops: [], stop_times: [], shapes: [], calendar: [], calendar_dates: [] };
         if (map) map.remove(); map = null;
         selectedRoutesListDiv.innerHTML = '<p>Error loading data.</p>';
-        exportButton.disabled = true;
+        // exportButton.disabled = true; // Already handled by updateExportButtonStatus or initial disable
         loadingIndicator.style.display = 'none'; // Hide indicator on error too
         // No need to clearLoadingProgress here as it shows the error.
+    } finally {
+        document.body.classList.remove('loading-in-progress');
+        gtfsUploadInput.disabled = false;
+        updateExportButtonStatus(); // Ensure export button state is correct based on selections
     }
 }
 
