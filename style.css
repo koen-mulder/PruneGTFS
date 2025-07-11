@@ -1,0 +1,101 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+h1 {
+    text-align: center;
+    padding: 10px;
+    margin: 0;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+}
+
+.container {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden; /* Prevents scrollbars if content overflows */
+}
+
+.controls {
+    width: 300px;
+    padding: 15px;
+    border-right: 1px solid #ccc;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Adds space between control elements */
+    overflow-y: auto; /* Allows scrolling if content overflows */
+}
+
+#gtfs-upload {
+    margin-bottom: 10px;
+}
+
+#selected-routes-list {
+    border: 1px solid #ddd;
+    padding: 10px;
+    min-height: 100px; /* Ensure it has some height even when empty */
+    background-color: #fff;
+    overflow-y: auto; /* Allow scrolling for long lists */
+    flex-grow: 1; /* Allow it to take available space in controls */
+}
+
+#selected-routes-list p {
+    margin-top: 0;
+}
+
+#export-button {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#export-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#map {
+    flex-grow: 1; /* Takes remaining space */
+    height: 100%; /* Ensures map fills its container height */
+}
+
+/* Visual feedback classes */
+.route-default {
+    color: gray;
+    opacity: 0.6;
+}
+
+.route-selected {
+    color: #007bff; /* Bright blue */
+    opacity: 1.0;
+    weight: 5; /* Make selected routes slightly thicker */
+}
+
+.stop-default {
+    /* Default stop style (e.g., small gray circle) */
+    /* Leaflet default markers are blue, we might override this in JS if needed */
+    /* For now, we'll assume default Leaflet marker is fine, or handle via JS icon creation */
+}
+
+.stop-selected {
+    /* Style for stops on a selected route (e.g., larger, brighter circle) */
+    /* This will likely be handled by changing marker icons in JS */
+}
+
+/* Leaflet specific overrides if needed */
+.leaflet-popup-content-wrapper {
+    border-radius: 5px;
+}
+
+.leaflet-popup-content {
+    font-size: 14px;
+}
