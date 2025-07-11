@@ -374,8 +374,8 @@ async function exportPrunedGtfs() {
     prunedData.trips = gtfsData.trips.filter(trip => {
         if (selectedRouteIds.has(trip.route_id)) {
             keptTripIds.add(trip.trip_id);
-            if (trip.shape_id) {
-                keptShapeIds.add(trip.shape_id);
+            if (trip.shape_id && trip.shape_id.trim() !== "") { // Ensure shape_id is not just whitespace
+                keptShapeIds.add(trip.shape_id.trim()); // Trim shape_id before adding
             }
             return true;
         }
@@ -399,12 +399,40 @@ async function exportPrunedGtfs() {
     console.log("Pruned stops:", prunedData.stops.length);
 
     // 5. Filter Shapes (if shapes.txt existed)
+    console.log("--- Shape Export Diagnostics ---");
     if (gtfsData.shapes && gtfsData.shapes.length > 0) {
-        prunedData.shapes = gtfsData.shapes.filter(shapePt => keptShapeIds.has(shapePt.shape_id));
-        console.log("Pruned shapes:", prunedData.shapes.length);
+        console.log(`Original gtfsData.shapes point count: ${gtfsData.shapes.length}`);
+        console.log(`Number of unique shape_ids to keep (from keptShapeIds): ${keptShapeIds.size}`);
+
+        let pointsWithMissingShapeId = 0;
+        let pointsWithKeptShapeId = 0;
+
+        gtfsData.shapes.forEach(shapePt => {
+            if (!shapePt.shape_id || shapePt.shape_id.trim() === "") {
+                pointsWithMissingShapeId++;
+            } else if (keptShapeIds.has(shapePt.shape_id)) {
+                pointsWithKeptShapeId++;
+            }
+        });
+
+        console.log(`Source shape points missing a shape_id (or empty string): ${pointsWithMissingShapeId}`);
+        console.log(`Source shape points that have a shape_id IN keptShapeIds: ${pointsWithKeptShapeId}`);
+
+        prunedData.shapes = gtfsData.shapes.filter(shapePt => {
+            // Ensure shapePt.shape_id is valid and in keptShapeIds
+            return shapePt.shape_id && shapePt.shape_id.trim() !== "" && keptShapeIds.has(shapePt.shape_id);
+        });
+        console.log("Final prunedData.shapes point count:", prunedData.shapes.length);
+
+        if (pointsWithKeptShapeId !== prunedData.shapes.length) {
+            console.warn("Potential discrepancy: Number of source points matching keptShapeIds does not equal final pruned shapes count. This might indicate issues with shape_id values (e.g. nulls, undefined, leading/trailing spaces if not trimmed in Set addition or check).");
+        }
+
     } else {
         prunedData.shapes = []; // Ensure it's an empty array if original was empty
+        console.log("No shapes data in original GTFS or gtfsData.shapes is empty.");
     }
+    console.log("--- End Shape Export Diagnostics ---");
 
 
     // (Optional but good practice) Filter calendar.txt and calendar_dates.txt
