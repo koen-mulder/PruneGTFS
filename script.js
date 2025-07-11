@@ -420,7 +420,7 @@ async function exportPrunedGtfs() {
 
         prunedData.shapes = gtfsData.shapes.filter(shapePt => {
             // Ensure shapePt.shape_id is valid and in keptShapeIds
-            return shapePt.shape_id && shapePt.shape_id.trim() !== "" && keptShapeIds.has(shapePt.shape_id);
+            return shapePt.shape_id && shapePt.shape_id.trim() !== "" && keptShapeIds.has(shapePt.shape_id.trim());
         });
         console.log("Final prunedData.shapes point count:", prunedData.shapes.length);
 
