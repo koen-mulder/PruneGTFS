@@ -14,7 +14,6 @@ body {
     display: flex;
     flex-grow: 1;
     overflow: hidden;
-    padding-top: 64px; /* Space for the fixed top app bar */
 }
 
 .controls {

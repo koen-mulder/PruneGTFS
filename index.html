@@ -14,30 +14,29 @@
 <body>
     <mwc-top-app-bar-fixed>
         <div slot="title">PruneGTFS</div>
+        <div class="container">
+            <div class="controls">
+                <div class="file-upload-area">
+                    <input type="file" id="gtfs-upload" accept=".zip" style="display: none;">
+                    <mwc-button raised label="Choose GTFS ZIP file" icon="folder_open" onclick="document.getElementById('gtfs-upload').click()"></mwc-button>
+                </div>
+                <div class="selected-routes-area">
+                    <h2>Selected Routes:</h2>
+                    <mwc-list id="selected-routes-list">
+                        <mwc-list-item>No routes selected yet.</mwc-list-item>
+                    </mwc-list>
+                </div>
+                <mwc-button raised id="export-button" label="Export Pruned GTFS" icon="archive" disabled></mwc-button>
+            </div>
+            <div id="map">
+                <div id="loading-indicator" class="loading-overlay" style="display: none;">
+                    <mwc-circular-progress indeterminate></mwc-circular-progress>
+                    <p id="loading-message">Loading and processing GTFS data, please wait...</p>
+                    <div id="loading-progress"></div>
+                </div>
+            </div>
+        </div>
     </mwc-top-app-bar-fixed>
-
-    <div class="container">
-        <div class="controls">
-            <div class="file-upload-area">
-                <input type="file" id="gtfs-upload" accept=".zip" style="display: none;">
-                <mwc-button raised label="Choose GTFS ZIP file" icon="folder_open" onclick="document.getElementById('gtfs-upload').click()"></mwc-button>
-            </div>
-            <div class="selected-routes-area">
-                <h2>Selected Routes:</h2>
-                <mwc-list id="selected-routes-list">
-                    <mwc-list-item>No routes selected yet.</mwc-list-item>
-                </mwc-list>
-            </div>
-            <mwc-button raised id="export-button" label="Export Pruned GTFS" icon="archive" disabled></mwc-button>
-        </div>
-        <div id="map">
-            <div id="loading-indicator" class="loading-overlay" style="display: none;">
-                <mwc-circular-progress indeterminate></mwc-circular-progress>
-                <p id="loading-message">Loading and processing GTFS data, please wait...</p>
-                <div id="loading-progress"></div>
-            </div>
-        </div>
-    </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
