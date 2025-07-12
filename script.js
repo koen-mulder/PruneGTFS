@@ -366,27 +366,42 @@ function getStopsForSelectedRoutes() {
 }
 
 function updateSelectedRoutesList() {
+    selectedRoutesListDiv.innerHTML = ''; // Clear the list
+
     if (selectedRouteIds.size === 0) {
-        selectedRoutesListDiv.innerHTML = '<p>No routes selected yet. Click on a route on the map to select it.</p>';
+        const emptyItem = document.createElement('mwc-list-item');
+        emptyItem.textContent = 'No routes selected yet. Click on a route on the map to select it.';
+        selectedRoutesListDiv.appendChild(emptyItem);
         return;
     }
 
-    let html = '<ul>';
     selectedRouteIds.forEach(routeId => {
         const route = gtfsData.routes.find(r => r.route_id === routeId);
         const routeName = route ? (route.route_short_name || route.route_long_name) : `ID: ${routeId}`;
-        // Added a span with a class for styling and a data attribute to identify the route for removal
-        html += `<li>${routeName} <span class="remove-route" data-route-id="${routeId}" title="Remove this route">&times;</span></li>`;
-    });
-    html += '</ul>';
-    selectedRoutesListDiv.innerHTML = html;
 
-    // Add event listeners to the new "remove" buttons
-    selectedRoutesListDiv.querySelectorAll('.remove-route').forEach(button => {
-        button.addEventListener('click', function(event) {
-            event.stopPropagation(); // Prevent any other click listeners from firing
-            const routeIdToRemove = this.dataset.routeId;
-            toggleRouteSelection(routeIdToRemove); // This will re-render the list
+        const listItem = document.createElement('mwc-list-item');
+        listItem.setAttribute('hasMeta', 'true');
+        listItem.dataset.routeId = routeId;
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = routeName;
+        listItem.appendChild(textSpan);
+
+        const removeIcon = document.createElement('mwc-icon');
+        removeIcon.textContent = 'delete';
+        removeIcon.setAttribute('slot', 'meta');
+        removeIcon.classList.add('remove-route');
+        removeIcon.dataset.routeId = routeId;
+        removeIcon.style.cursor = 'pointer';
+
+        listItem.appendChild(removeIcon);
+
+        selectedRoutesListDiv.appendChild(listItem);
+
+        removeIcon.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const routeIdToRemove = event.currentTarget.dataset.routeId;
+            toggleRouteSelection(routeIdToRemove);
         });
     });
 }
