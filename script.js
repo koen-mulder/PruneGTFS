@@ -1,3 +1,10 @@
+// Initialize Material Components
+const topAppBarElement = document.querySelector('.mdc-top-app-bar');
+const topAppBar = new mdc.topAppBar.MDCTopAppBar(topAppBarElement);
+const buttons = document.querySelectorAll('.mdc-button');
+buttons.forEach(button => new mdc.ripple.MDCRipple(button));
+const linearProgress = new mdc.linearProgress.MDCLinearProgress(document.querySelector('.mdc-linear-progress'));
+
 // Global state
 let map;
 let gtfsData = {
@@ -367,16 +374,28 @@ function getStopsForSelectedRoutes() {
 
 function updateSelectedRoutesList() {
     if (selectedRouteIds.size === 0) {
-        selectedRoutesListDiv.innerHTML = '<p>No routes selected yet. Click on a route on the map to select it.</p>';
+        selectedRoutesListDiv.innerHTML = '<p class="mdc-typography--body1">No routes selected yet. Click on a route on the map to select it.</p>';
         return;
     }
 
-    let html = '<ul>';
+    let html = '<ul class="mdc-list mdc-list--two-line">';
     selectedRouteIds.forEach(routeId => {
         const route = gtfsData.routes.find(r => r.route_id === routeId);
         const routeName = route ? (route.route_short_name || route.route_long_name) : `ID: ${routeId}`;
-        // Added a span with a class for styling and a data attribute to identify the route for removal
-        html += `<li>${routeName} <span class="remove-route" data-route-id="${routeId}" title="Remove this route">&times;</span></li>`;
+        const routeDesc = route ? `ID: ${routeId}` : '';
+        html += `
+            <li class="mdc-list-item" tabindex="0">
+                <span class="mdc-list-item__ripple"></span>
+                <span class="mdc-list-item__text">
+                    <span class="mdc-list-item__primary-text">${routeName}</span>
+                    <span class="mdc-list-item__secondary-text">${routeDesc}</span>
+                </span>
+                <span class="mdc-list-item__meta material-icons remove-route"
+                      data-route-id="${routeId}"
+                      aria-label="Remove route"
+                      title="Remove this route">delete</span>
+            </li>
+        `;
     });
     html += '</ul>';
     selectedRoutesListDiv.innerHTML = html;
@@ -389,6 +408,10 @@ function updateSelectedRoutesList() {
             toggleRouteSelection(routeIdToRemove); // This will re-render the list
         });
     });
+
+    // Initialize ripples on the new list items
+    const listItems = selectedRoutesListDiv.querySelectorAll('.mdc-list-item');
+    listItems.forEach(listItem => new mdc.ripple.MDCRipple(listItem));
 }
 
 function updateExportButtonStatus() {

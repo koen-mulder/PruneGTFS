@@ -1,168 +1,112 @@
+:root {
+    --mdc-theme-primary: #6200ee;
+    --mdc-theme-secondary: #03dac6;
+    --mdc-theme-background: #fff;
+    --mdc-theme-surface: #fff;
+    --mdc-theme-on-primary: #fff;
+    --mdc-theme-on-secondary: #000;
+    --mdc-theme-on-surface: #000;
+    --mdc-typography-font-family: 'Roboto', sans-serif;
+}
+
 body {
-    font-family: sans-serif;
+    font-family: var(--mdc-typography-font-family);
     margin: 0;
-    padding: 0;
     display: flex;
     flex-direction: column;
     height: 100vh;
+    background-color: var(--mdc-theme-background);
 }
 
-h1 {
-    text-align: center;
-    padding: 10px;
-    margin: 0;
-    background-color: #f0f0f0;
-    border-bottom: 1px solid #ccc;
+.mdc-top-app-bar {
+    background-color: var(--mdc-theme-primary);
+    color: var(--mdc-theme-on-primary);
 }
 
 .container {
     display: flex;
     flex-grow: 1;
-    overflow: hidden; /* Prevents scrollbars if content overflows */
+    overflow: hidden;
 }
 
 .controls {
-    width: 300px;
-    padding: 15px;
-    border-right: 1px solid #ccc;
-    background-color: #f9f9f9;
+    width: 350px;
+    padding: 16px;
+    border-right: 1px solid rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
-    /* gap: 15px; */ /* Replaced by margins/padding on individual areas */
-    overflow-y: auto; /* Allows scrolling if content overflows */
+    gap: 16px;
+    overflow-y: auto;
 }
 
 .file-upload-area {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.file-upload-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-#gtfs-upload {
-    /* margin-bottom: 10px; */ /* Handled by area padding */
-    width: 100%; /* Make input take full width of its container */
+    display: flex;
+    justify-content: center;
 }
 
 .selected-routes-area {
-    padding: 0 10px 10px 10px; /* Padding for top (via h2 margin), sides, bottom */
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Allows selected-routes-list to grow */
-    overflow-y: hidden; /* Prevent this area from scrolling, list inside will scroll */
+    flex-grow: 1;
+    overflow: hidden;
 }
 
 .selected-routes-area h2 {
-    margin-top: 10px; /* Space above title */
-    margin-bottom: 8px; /* Space between title and list */
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.25rem;
+    font-weight: 500;
 }
 
 #selected-routes-list {
-    border: 1px solid #ddd;
-    padding: 10px;
-    min-height: 100px; /* Ensure it has some height even when empty */
-    background-color: #fff;
-    overflow-y: auto; /* Allow scrolling for long lists */
-    flex-grow: 1; /* Allow it to take available space in controls */
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    overflow-y: auto;
+    flex-grow: 1;
 }
 
-#selected-routes-list p {
-    margin-top: 0;
+#selected-routes-list .mdc-list-item {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-#selected-routes-list ul {
-    list-style-type: none;
-    padding-left: 0;
-    margin: 0;
-}
-
-#selected-routes-list li {
-    padding: 5px 0;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#selected-routes-list li:last-child {
+#selected-routes-list .mdc-list-item:last-child {
     border-bottom: none;
 }
 
 .remove-route {
     cursor: pointer;
-    color: #ff0000;
-    font-weight: bold;
-    padding: 0 5px; /* Make it easier to click */
-    font-size: 1.2em; /* Make the 'x' a bit larger */
+    color: rgba(0, 0, 0, 0.54);
 }
 
 .remove-route:hover {
-    color: #cc0000;
+    color: var(--mdc-theme-primary);
 }
 
 #export-button {
-    margin: 10px; /* Add margin to separate from list above */
-    padding: 10px 15px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-#export-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+    margin-top: auto;
 }
 
 #map {
-    flex-grow: 1; /* Takes remaining space */
-    height: 100%; /* Ensures map fills its container height */
+    flex-grow: 1;
+    position: relative;
 }
 
-/* Visual feedback classes */
-.route-default {
-    color: gray;
-    opacity: 0.6;
-}
-
-.route-selected {
-    color: #007bff; /* Bright blue */
-    opacity: 1.0;
-    weight: 5; /* Make selected routes slightly thicker */
-}
-
-.stop-default {
-    /* Default stop style (e.g., small gray circle) */
-    /* Leaflet default markers are blue, we might override this in JS if needed */
-    /* For now, we'll assume default Leaflet marker is fine, or handle via JS icon creation */
-}
-
-.stop-selected {
-    /* Style for stops on a selected route (e.g., larger, brighter circle) */
-    /* This will likely be handled by changing marker icons in JS */
-}
-
-/* Leaflet specific overrides if needed */
-.leaflet-popup-content-wrapper {
-    border-radius: 5px;
-}
-
-#loading-indicator p#loading-message {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-weight: bold;
+#loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 24px;
+    border-radius: 8px;
+    z-index: 10000;
+    width: 80%;
+    max-width: 400px;
 }
 
 #loading-progress {
     font-size: 0.9em;
-    max-height: 150px; /* Limit height and allow scroll if too many messages */
+    max-height: 150px;
     overflow-y: auto;
-    border-top: 1px solid #ccc;
     padding-top: 10px;
 }
 
@@ -175,8 +119,57 @@ h1 {
     font-size: 14px;
 }
 
-/* Added for wait cursor during loading */
 body.loading-in-progress,
-body.loading-in-progress * { /* Apply to all children as well */
-    cursor: wait !important; /* Use !important to override other cursor styles */
+body.loading-in-progress * {
+    cursor: wait !important;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --mdc-theme-primary: #bb86fc;
+        --mdc-theme-secondary: #03dac6;
+        --mdc-theme-background: #121212;
+        --mdc-theme-surface: #1e1e1e;
+        --mdc-theme-on-primary: #000;
+        --mdc-theme-on-secondary: #000;
+        --mdc-theme-on-surface: #fff;
+    }
+
+    .mdc-card {
+        background-color: var(--mdc-theme-surface);
+    }
+
+    #selected-routes-list {
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    #selected-routes-list .mdc-list-item {
+        border-bottom-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .remove-route {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .remove-route:hover {
+        color: var(--mdc-theme-primary);
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .controls {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        height: 40vh;
+    }
+
+    #map {
+        height: 60vh;
+    }
 }

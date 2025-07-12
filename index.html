@@ -7,28 +7,55 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin=""/>
+    <!-- Material Components CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
+    <!-- Google Fonts and Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <h1>PruneGTFS</h1>
+<body class="mdc-typography">
+    <header class="mdc-top-app-bar">
+        <div class="mdc-top-app-bar__row">
+            <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+                <span class="mdc-top-app-bar__title">PruneGTFS</span>
+            </section>
+        </div>
+    </header>
 
-    <div class="container">
-        <div class="controls">
+    <div class="container mdc-top-app-bar--fixed-adjust">
+        <div class="controls mdc-card">
             <div class="file-upload-area">
-                <label for="gtfs-upload" class="file-upload-label">Choose GTFS ZIP file:</label>
-                <input type="file" id="gtfs-upload" accept=".zip">
+                <label for="gtfs-upload" class="file-upload-label mdc-button mdc-button--raised">
+                    <i class="material-icons mdc-button__icon" aria-hidden="true">folder_open</i>
+                    Choose GTFS ZIP
+                </label>
+                <input type="file" id="gtfs-upload" accept=".zip" hidden>
             </div>
             <div class="selected-routes-area">
                 <h2>Selected Routes:</h2>
-                <div id="selected-routes-list">
+                <div id="selected-routes-list" class="mdc-list">
                     <p>No routes selected yet.</p>
                 </div>
             </div>
-            <button id="export-button" disabled>Export Pruned GTFS</button>
+            <button id="export-button" class="mdc-button mdc-button--raised" disabled>
+                <i class="material-icons mdc-button__icon" aria-hidden="true">archive</i>
+                Export Pruned GTFS
+            </button>
         </div>
         <div id="map">
-            <div id="loading-indicator" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,255,255,0.8); padding: 20px; border-radius: 5px; z-index: 10000;">
-                <p id="loading-message">Loading and processing GTFS data, please wait...</p>
+            <div id="loading-indicator" class="mdc-card" style="display: none;">
+                <h2 class="mdc-typography--headline6" id="loading-message">Processing GTFS data...</h2>
+                <div class="mdc-linear-progress mdc-linear-progress--indeterminate">
+                    <div class="mdc-linear-progress__buffering-dots"></div>
+                    <div class="mdc-linear-progress__buffer"></div>
+                    <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">
+                        <span class="mdc-linear-progress__bar-inner"></span>
+                    </div>
+                    <div class="mdc-linear-progress__bar mdc-linear-progress__secondary-bar">
+                        <span class="mdc-linear-progress__bar-inner"></span>
+                    </div>
+                </div>
                 <div id="loading-progress"></div>
             </div>
         </div>
@@ -37,6 +64,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+    <!-- Material Components JS -->
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="script.js"></script>
