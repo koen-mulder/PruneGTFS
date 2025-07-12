@@ -28,12 +28,37 @@ h1 {
     background-color: #f9f9f9;
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Adds space between control elements */
+    /* gap: 15px; */ /* Replaced by margins/padding on individual areas */
     overflow-y: auto; /* Allows scrolling if content overflows */
 }
 
+.file-upload-area {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.file-upload-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
 #gtfs-upload {
-    margin-bottom: 10px;
+    /* margin-bottom: 10px; */ /* Handled by area padding */
+    width: 100%; /* Make input take full width of its container */
+}
+
+.selected-routes-area {
+    padding: 0 10px 10px 10px; /* Padding for top (via h2 margin), sides, bottom */
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allows selected-routes-list to grow */
+    overflow-y: hidden; /* Prevent this area from scrolling, list inside will scroll */
+}
+
+.selected-routes-area h2 {
+    margin-top: 10px; /* Space above title */
+    margin-bottom: 8px; /* Space between title and list */
 }
 
 #selected-routes-list {
@@ -49,7 +74,38 @@ h1 {
     margin-top: 0;
 }
 
+#selected-routes-list ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+#selected-routes-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#selected-routes-list li:last-child {
+    border-bottom: none;
+}
+
+.remove-route {
+    cursor: pointer;
+    color: #ff0000;
+    font-weight: bold;
+    padding: 0 5px; /* Make it easier to click */
+    font-size: 1.2em; /* Make the 'x' a bit larger */
+}
+
+.remove-route:hover {
+    color: #cc0000;
+}
+
 #export-button {
+    margin: 10px; /* Add margin to separate from list above */
     padding: 10px 15px;
     background-color: #4CAF50;
     color: white;
@@ -96,6 +152,31 @@ h1 {
     border-radius: 5px;
 }
 
+#loading-indicator p#loading-message {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#loading-progress {
+    font-size: 0.9em;
+    max-height: 150px; /* Limit height and allow scroll if too many messages */
+    overflow-y: auto;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+
+#loading-progress p {
+    margin: 3px 0;
+    padding-left: 5px;
+}
+
 .leaflet-popup-content {
     font-size: 14px;
+}
+
+/* Added for wait cursor during loading */
+body.loading-in-progress,
+body.loading-in-progress * { /* Apply to all children as well */
+    cursor: wait !important; /* Use !important to override other cursor styles */
 }

@@ -19,25 +19,53 @@ const selectedRoutesListDiv = document.getElementById('selected-routes-list');
 const exportButton = document.getElementById('export-button');
 const mapDiv = document.getElementById('map');
 const loadingIndicator = document.getElementById('loading-indicator');
+const loadingProgressDiv = document.getElementById('loading-progress'); // Added for detailed progress
+
+// --- Helper for updating loading progress ---
+function updateLoadingProgress(message) {
+    if (loadingProgressDiv) {
+        loadingProgressDiv.innerHTML += `<p>${message}</p>`;
+        // Scroll to the bottom of the progress div
+        loadingProgressDiv.scrollTop = loadingProgressDiv.scrollHeight;
+    }
+    console.log("Progress: " + message); // Also log to console
+}
+
+function clearLoadingProgress() {
+    if (loadingProgressDiv) {
+        loadingProgressDiv.innerHTML = '';
+    }
+}
 
 // --- 1. File Handling and Parsing ---
 gtfsUploadInput.addEventListener('change', handleFileUpload);
 
 async function handleFileUpload(event) {
+    document.body.classList.add('loading-in-progress');
+    gtfsUploadInput.disabled = true;
+    exportButton.disabled = true; // Explicitly disable export button during load
     loadingIndicator.style.display = 'block'; // Show loading indicator
+    clearLoadingProgress(); // Clear previous messages
+    updateLoadingProgress("File selected. Starting processing...");
     await new Promise(resolve => setTimeout(resolve, 0)); // Allow DOM to update
 
     const file = event.target.files[0];
     if (!file) {
         console.error("No file selected.");
+        updateLoadingProgress("Error: No file selected.");
+        loadingIndicator.style.display = 'none'; // Hide if no file
+        // Reset states in case of early exit
+        document.body.classList.remove('loading-in-progress');
+        gtfsUploadInput.disabled = false;
+        updateExportButtonStatus(); // Reset export button based on selection
         return;
     }
 
-    console.log("File selected:", file.name);
+    updateLoadingProgress(`Loading file: ${file.name}`);
     const jszip = new JSZip();
     try {
         const zip = await jszip.loadAsync(file);
-        console.log("ZIP loaded successfully.");
+        updateLoadingProgress("ZIP file loaded successfully. Starting to parse files...");
 
         const parsePromises = [];
         const requiredFiles = ['routes.txt', 'trips.txt', 'stops.txt', 'stop_times.txt'];
@@ -48,12 +76,17 @@ async function handleFileUpload(event) {
             if (fileEntry) {
                 parsePromises.push(
                     fileEntry.async('string').then(content => {
+                        updateLoadingProgress(`Parsing ${fileName}...`);
                         const key = fileName.replace('.txt', '');
                         gtfsData[key] = Papa.parse(content, { header: true, skipEmptyLines: true }).data;
-                        console.log(`Parsed ${fileName}`, gtfsData[key].length, "records");
-                    }).catch(err => console.error(`Error parsing ${fileName}:`, err))
+                        updateLoadingProgress(`Finished parsing ${fileName} (${gtfsData[key].length} records).`);
+                    }).catch(err => {
+                        updateLoadingProgress(`Error parsing ${fileName}: ${err.message}`);
+                        console.error(`Error parsing ${fileName}:`, err);
+                    })
                 );
             } else {
+                updateLoadingProgress(`Error: Required GTFS file "${fileName}" not found.`);
                 alert(`Required GTFS file "${fileName}" not found in the archive.`);
                 throw new Error(`Required GTFS file "${fileName}" not found.`);
             }
@@ -64,33 +97,43 @@ async function handleFileUpload(event) {
             if (fileEntry) {
                 parsePromises.push(
                     fileEntry.async('string').then(content => {
+                        updateLoadingProgress(`Parsing ${fileName}...`);
                         const key = fileName.replace('.txt', '');
                         gtfsData[key] = Papa.parse(content, { header: true, skipEmptyLines: true }).data;
-                        console.log(`Parsed ${fileName}`, gtfsData[key].length, "records");
-                    }).catch(err => console.error(`Error parsing ${fileName}:`, err))
+                        updateLoadingProgress(`Finished parsing ${fileName} (${gtfsData[key].length} records).`);
+                    }).catch(err => {
+                        updateLoadingProgress(`Error parsing ${fileName}: ${err.message}`);
+                        console.error(`Error parsing ${fileName}:`, err);
+                    })
                 );
             } else {
-                console.log(`Optional GTFS file "${fileName}" not found, proceeding without it.`);
+                updateLoadingProgress(`Optional GTFS file "${fileName}" not found, proceeding without it.`);
                 const key = fileName.replace('.txt', '');
                 gtfsData[key] = []; // Ensure it's an empty array if not present
             }
         });
 
         await Promise.all(parsePromises);
-        console.log("All GTFS files parsed:", gtfsData);
+        updateLoadingProgress("All GTFS files parsed. Initializing map and displaying data...");
 
         initializeMap();
-        displayGtfsData();
+        displayGtfsData(); // This function will hide the loading indicator when done
 
     } catch (error) {
         console.error("Error processing GTFS zip file:", error);
+        updateLoadingProgress(`Error processing GTFS zip file: ${error.message}`);
         alert("Failed to process GTFS file. Make sure it's a valid GTFS .zip archive. Error: " + error.message);
         // Reset if necessary
         gtfsData = { routes: [], trips: [], stops: [], stop_times: [], shapes: [], calendar: [], calendar_dates: [] };
         if (map) map.remove(); map = null;
         selectedRoutesListDiv.innerHTML = '<p>Error loading data.</p>';
-        exportButton.disabled = true;
+        // exportButton.disabled = true; // Already handled by updateExportButtonStatus or initial disable
         loadingIndicator.style.display = 'none'; // Hide indicator on error too
+        // No need to clearLoadingProgress here as it shows the error.
+    } finally {
+        document.body.classList.remove('loading-in-progress');
+        gtfsUploadInput.disabled = false;
+        updateExportButtonStatus(); // Ensure export button state is correct based on selections
     }
 }
 
@@ -238,7 +281,9 @@ function displayGtfsData() {
     // Add click listeners to routes for selection
     addRouteClickListeners();
 
+    updateLoadingProgress("Data displayed. Ready.");
     loadingIndicator.style.display = 'none'; // Hide loading indicator
+    // Do not clear progress here, so user can see the log. It will be cleared on next upload.
     console.log("Finished displaying GTFS data.");
 }
 
@@ -330,10 +375,20 @@ function updateSelectedRoutesList() {
     selectedRouteIds.forEach(routeId => {
         const route = gtfsData.routes.find(r => r.route_id === routeId);
         const routeName = route ? (route.route_short_name || route.route_long_name) : `ID: ${routeId}`;
-        html += `<li>${routeName}</li>`;
+        // Added a span with a class for styling and a data attribute to identify the route for removal
+        html += `<li>${routeName} <span class="remove-route" data-route-id="${routeId}" title="Remove this route">&times;</span></li>`;
     });
     html += '</ul>';
     selectedRoutesListDiv.innerHTML = html;
+
+    // Add event listeners to the new "remove" buttons
+    selectedRoutesListDiv.querySelectorAll('.remove-route').forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevent any other click listeners from firing
+            const routeIdToRemove = this.dataset.routeId;
+            toggleRouteSelection(routeIdToRemove); // This will re-render the list
+        });
+    });
 }
 
 function updateExportButtonStatus() {
