@@ -10,10 +10,15 @@ body {
     background-color: #f5f5f5;
 }
 
+mwc-top-app-bar-fixed {
+    --mdc-top-app-bar-width: 100%;
+}
+
 .container {
     display: flex;
     flex-grow: 1;
     overflow: hidden;
+    padding-top: 64px; /* Space for the fixed top app bar */
 }
 
 .controls {
